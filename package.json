@@ -1,6 +1,6 @@
 {
   "name": "js-yaml-cloudformation-schema",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Schema to allow js-yaml to process YAML formatted CloudFormation templates that use short form syntax for intrinsic functions while parsing or dumping",
   "main": "index.js",
   "types": "index.d.ts",
