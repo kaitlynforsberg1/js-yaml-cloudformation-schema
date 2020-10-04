@@ -5,23 +5,38 @@ const localTags = require('./tags.json');
 const cloudformationTags = build(localTags, yaml);
 
 function build(localTags, yaml) {
-  function Model(name) {
-    return function (data) {
-      this.class = name;
-      this.name = name;
-      this.data = data;
-    };
+  function Model() {
+    return function() {}
   }
   function CustomYamlType(name, kind) {
-    const model = Model(name);
+    const model = Model();
     return new yaml.Type('!'+name, {
       kind: kind,
       instanceOf: model,
-      construct: function(data) {
-        return new model(data);
+      construct: function (data) {
+        const obj = new model();
+        // We hide the original data on the `_data` property for the `represent`
+        // method to use when dumping the data...
+        Object.defineProperty(obj, "_data", {
+          value: data
+        });
+        // And we make the shape of `obj` match the JSON shape of obj
+        const prefix = name === 'Ref' ? '' : 'Fn::';
+        switch (kind) {
+          case 'scalar':
+            obj[`${prefix}${name}`] = data;
+            break;
+          case 'sequence':
+            obj[`${prefix}${name}`] = data ? data : [];
+            break;
+          case 'mapping':
+            obj[`${prefix}${name}`] = data ? data : {};
+            break;
+        }
+        return obj;
       },
-      represent: function(ref, style) {
-        return ref.data;
+      represent: function(obj) {
+        return obj._data;
       }
     });
   }
